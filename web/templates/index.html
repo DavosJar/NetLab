@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Validador IPv4{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Proyecto de autómatas</p>
+    <h1>Validador IPv4</h1>
+    <p class="lead">Ingresa una dirección IPv4 para ver el resultado mínimo y el análisis extendido del AFN, el AFD y la minimización.</p>
+  </div>
+</section>
+
+<section class="panel">
+  <form method="post" action="{{ url_for('validar_ipv4') }}" class="form-card">
+    <label for="cadena">Dirección IPv4</label>
+    <div class="form-row">
+      <input
+        id="cadena"
+        name="cadena"
+        type="text"
+        value="{{ cadena }}"
+        placeholder="192.168.1.1"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button type="submit">Validar</button>
+    </div>
+  </form>
+
+  {% if resultado is not none %}
+  <section class="result-card {% if resultado %}ok{% else %}bad{% endif %}">
+    <span class="result-label">Resultado</span>
+    <strong>{{ "Válido" if resultado else "Inválido" }}</strong>
+    <p>{{ cadena if cadena else "Cadena vacía" }}</p>
+  </section>
+  {% endif %}
+</section>
+
+{% if analisis %}
+<section class="grid">
+  <article class="card">
+    <h2>AFN</h2>
+    <dl>
+      <dt>Nombre</dt><dd>{{ analisis.afn.nombre }}</dd>
+      <dt>Estados</dt><dd>{{ analisis.afn.estados | join(', ') }}</dd>
+      <dt>Inicial</dt><dd>{{ analisis.afn.inicial }}</dd>
+      <dt>Aceptación</dt><dd>{{ analisis.afn.aceptacion | join(', ') }}</dd>
+      <dt>Alfabeto</dt><dd>{{ analisis.afn.alfabeto | join(', ') }}</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <h2>AFD</h2>
+    <dl>
+      <dt>Nombre</dt><dd>{{ analisis.afd.nombre }}</dd>
+      <dt>Estados</dt><dd>{{ analisis.afd.estados | join(', ') }}</dd>
+      <dt>Inicial</dt><dd>{{ analisis.afd.inicial }}</dd>
+      <dt>Aceptación</dt><dd>{{ analisis.afd.aceptacion | join(', ') }}</dd>
+      <dt>Alfabeto</dt><dd>{{ analisis.afd.alfabeto | join(', ') }}</dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <h2>AFD mínimo</h2>
+    <dl>
+      <dt>Nombre</dt><dd>{{ analisis.afd_min.nombre }}</dd>
+      <dt>Estados</dt><dd>{{ analisis.afd_min.estados | join(', ') }}</dd>
+      <dt>Inicial</dt><dd>{{ analisis.afd_min.inicial }}</dd>
+      <dt>Aceptación</dt><dd>{{ analisis.afd_min.aceptacion | join(', ') }}</dd>
+      <dt>Alfabeto</dt><dd>{{ analisis.afd_min.alfabeto | join(', ') }}</dd>
+    </dl>
+  </article>
+</section>
+
+<section class="card">
+  <h2>Por qué hay estados en AFD y no en AFD mínimo</h2>
+  <p>{{ analisis.minimizacion.explicacion }}</p>
+  <dl>
+    <dt>Estados en AFD</dt><dd>{{ analisis.minimizacion.cantidad_afd }}</dd>
+    <dt>Estados en AFD mínimo</dt><dd>{{ analisis.minimizacion.cantidad_afd_min }}</dd>
+    <dt>Estados eliminados</dt><dd>{{ analisis.minimizacion.cantidad_eliminados }}</dd>
+  </dl>
+  {% if analisis.minimizacion.estados_eliminados %}
+  <p><strong>Estados eliminados:</strong> {{ analisis.minimizacion.estados_eliminados | join(', ') }}</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Traza de validación</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Paso</th>
+        <th>Símbolo</th>
+        <th>Estados activos</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for paso in analisis.traza %}
+      <tr>
+        <td>{{ paso.paso }}</td>
+        <td>{{ paso.simbolo if paso.simbolo is not none else 'inicio' }}</td>
+        <td>{{ paso.estados_activos | join(', ') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h2>Transiciones AFN</h2>
+  {% for estado, transiciones in analisis.afn.transiciones.items() %}
+  <details {% if loop.first %}open{% endif %}>
+    <summary>{{ estado }}</summary>
+    <ul>
+      {% for simbolo, destinos in transiciones.items() %}
+      <li><strong>{{ simbolo }}</strong>: {{ destinos | join(', ') }}</li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <h2>Transiciones AFD</h2>
+  {% for estado, transiciones in analisis.afd.transiciones.items() %}
+  <details {% if loop.first %}open{% endif %}>
+    <summary>{{ estado }}</summary>
+    <ul>
+      {% for simbolo, destino in transiciones.items() %}
+      <li><strong>{{ simbolo }}</strong>: {{ destino }}</li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}
