@@ -1,13 +1,23 @@
-"""
-AFN para validar separadores utilizados en direcciones IP y MAC.
+from Dominio_automatas.modelos.afn import AFN
 
-Separadores:
-    - Punto '.' para IPv4
-    - Dos puntos ':' para MAC
-"""
+def construir_afn_separador_mac() -> AFN:
+    """
+    Construye el AFN que reconoce el separador de direcciones MAC.
 
-# AFN del separador punto '.' para IPv4
-# A implementar con la estructura formal en la clase AFN
+    Lenguaje: { ':' }
 
-# AFN del separador dos puntos ':' para MAC
-# A implementar con la estructura formal en la clase AFN
+    Estados:
+        q0 → inicial
+        q1 → acepta, se leyó ':'
+    """
+    return AFN(
+        nombre='separador_mac',
+        alfabeto={':'},
+        estados={'q0', 'q1'},
+        estado_inicial='q0',
+        estados_aceptacion={'q1'},
+        tabla_transiciones={
+            'q0': {':': ('q1',)},
+            'q1': {},
+        }
+    )
