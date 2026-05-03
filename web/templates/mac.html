@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% block title %}Validador MAC{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Proyecto de autómatas</p>
+    <h1>Validador <span class="accent-word">MAC</span></h1>
+    <p class="lead">Ingresa una dirección MAC para ver el resultado mínimo y el análisis extendido del AFN, el AFD y la minimización.</p>
+  </div>
+</section>
+
+<section class="panel">
+  <form method="post" action="{{ url_for('validar_mac') }}" class="form-card" id="formMac">
+    <label for="cadena">Dirección MAC</label>
+    <div class="form-row">
+      <input id="cadena" name="cadena" type="text" value="{{ cadena }}"
+        placeholder="AA:BB:CC:DD:EE:FF" autocomplete="off" spellcheck="false">
+      <button type="submit"><span class="btn-icon">▶</span> Validar</button>
+    </div>
+    <div class="examples-section">
+      <span class="examples-label">Ejemplos rápidos:</span>
+      <div class="examples-wrap">
+        <button type="button" class="example-chip ok" data-value="AA:BB:CC:DD:EE:FF" onclick="document.getElementById('cadena').value=this.dataset.value">✓ AA:BB:CC:DD:EE:FF</button>
+        <button type="button" class="example-chip ok" data-value="00:1A:2B:3C:4D:5E" onclick="document.getElementById('cadena').value=this.dataset.value">✓ 00:1A:2B:3C:4D:5E</button>
+        <button type="button" class="example-chip ok" data-value="FF:FF:FF:FF:FF:FF" onclick="document.getElementById('cadena').value=this.dataset.value">✓ FF:FF:FF:FF:FF:FF</button>
+        <button type="button" class="example-chip bad" data-value="GG:HH:II:JJ:KK:LL" onclick="document.getElementById('cadena').value=this.dataset.value">✗ GG:HH:II:JJ:KK:LL</button>
+        <button type="button" class="example-chip bad" data-value="AA:BB:CC" onclick="document.getElementById('cadena').value=this.dataset.value">✗ AA:BB:CC</button>
+        <button type="button" class="example-chip bad" data-value="AA-BB-CC-DD-EE-FF" onclick="document.getElementById('cadena').value=this.dataset.value">✗ AA-BB-CC-DD-EE-FF</button>
+      </div>
+    </div>
+  </form>
+  {% if resultado is not none %}
+  <section class="result-card {% if resultado %}ok{% else %}bad{% endif %}">
+    <span class="result-label">Resultado</span>
+    <div class="result-body">
+      <div class="result-badge {% if resultado %}ok{% else %}bad{% endif %}">
+        {% if resultado %}✓ Válido{% else %}✗ Inválido{% endif %}
+      </div>
+      <code class="result-cadena">{{ cadena if cadena else "Cadena vacía" }}</code>
+    </div>
+  </section>
+  {% endif %}
+</section>
+
+{% if analisis %}
+<div class="tabs-nav">
+  <button class="tab-btn active" data-tab="automatas">Autómatas</button>
+  <button class="tab-btn" data-tab="minimizacion">Minimización</button>
+  <button class="tab-btn" data-tab="traza">Traza animada</button>
+  <button class="tab-btn" data-tab="transiciones">Tablas de transición</button>
+</div>
+
+<!-- TAB: AUTÓMATAS -->
+<div class="tab-panel active" id="tab-automatas">
+  <div class="automata-grid">
+
+    <div class="automata-block">
+      <div class="automata-header">
+        <span class="automata-badge afn">AFN</span>
+        <div class="automata-meta">
+          <span class="meta-pill">{{ analisis.afn.estados | length }} estados</span>
+          <span class="meta-pill">{{ analisis.afn.alfabeto | length }} símbolos</span>
+        </div>
+      </div>
+      <div class="automata-info-row">
+        <div class="info-chip">
+          <span class="chip-label">Inicial</span>
+          <span class="chip-value state-chip initial">{{ analisis.afn.inicial }}</span>
+        </div>
+        <div class="info-chip">
+          <span class="chip-label">Aceptación</span>
+          <div class="chip-states">
+            {% for s in analisis.afn.aceptacion %}
+            <span class="chip-value state-chip accept">{{ s }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="info-chip">
+          <span class="chip-label">Alfabeto</span>
+          <span class="chip-value">{{ analisis.afn.alfabeto | join(' · ') }}</span>
+        </div>
+      </div>
+      <div class="diagram-container scrollable" id="diagram-afn"></div>
+      <button class="btn-open-modal" data-modal="afn">⛶ Ver diagrama completo + Simular</button>
+    </div>
+
+    <div class="automata-block">
+      <div class="automata-header">
+        <span class="automata-badge afd">AFD</span>
+        <div class="automata-meta">
+          <span class="meta-pill">{{ analisis.afd.estados | length }} estados</span>
+          <span class="meta-pill">{{ analisis.afd.alfabeto | length }} símbolos</span>
+        </div>
+      </div>
+      <div class="automata-info-row">
+        <div class="info-chip">
+          <span class="chip-label">Inicial</span>
+          <span class="chip-value state-chip initial">{{ analisis.afd.inicial }}</span>
+        </div>
+        <div class="info-chip">
+          <span class="chip-label">Aceptación</span>
+          <div class="chip-states">
+            {% for s in analisis.afd.aceptacion %}
+            <span class="chip-value state-chip accept">{{ s }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="info-chip">
+          <span class="chip-label">Alfabeto</span>
+          <span class="chip-value">{{ analisis.afd.alfabeto | join(' · ') }}</span>
+        </div>
+      </div>
+      <div class="diagram-container scrollable" id="diagram-afd"></div>
+      <button class="btn-open-modal" data-modal="afd">⛶ Ver diagrama completo + Simular</button>
+    </div>
+
+    <div class="automata-block full-width">
+      <div class="automata-header">
+        <span class="automata-badge min">AFD mínimo</span>
+        <div class="automata-meta">
+          <span class="meta-pill highlight">{{ analisis.afd_min.estados | length }} estados</span>
+          <span class="meta-pill">{{ analisis.afd_min.alfabeto | length }} símbolos</span>
+        </div>
+      </div>
+      <div class="automata-info-row">
+        <div class="info-chip">
+          <span class="chip-label">Inicial</span>
+          <span class="chip-value state-chip initial">{{ analisis.afd_min.inicial }}</span>
+        </div>
+        <div class="info-chip">
+          <span class="chip-label">Aceptación</span>
+          <div class="chip-states">
+            {% for s in analisis.afd_min.aceptacion %}
+            <span class="chip-value state-chip accept">{{ s }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="info-chip">
+          <span class="chip-label">Alfabeto</span>
+          <span class="chip-value">{{ analisis.afd_min.alfabeto | join(' · ') }}</span>
+        </div>
+      </div>
+      <div class="diagram-container scrollable large" id="diagram-min"></div>
+      <button class="btn-open-modal" data-modal="min">⛶ Ver diagrama completo + Simular</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB: MINIMIZACIÓN -->
+<div class="tab-panel" id="tab-minimizacion">
+  <div class="card">
+    <h2>¿Por qué hay estados en AFD y no en AFD mínimo?</h2>
+    <p class="muted-text">{{ analisis.minimizacion.explicacion }}</p>
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-num">{{ analisis.minimizacion.cantidad_afd }}</span>
+        <span class="stat-label">Estados en AFD</span>
+      </div>
+      <div class="stat-card accent">
+        <span class="stat-num">{{ analisis.minimizacion.cantidad_afd_min }}</span>
+        <span class="stat-label">Estados en AFD mínimo</span>
+      </div>
+      <div class="stat-card danger">
+        <span class="stat-num">{{ analisis.minimizacion.cantidad_eliminados }}</span>
+        <span class="stat-label">Estados eliminados</span>
+      </div>
+    </div>
+    {% if analisis.minimizacion.estados_eliminados %}
+    <div class="eliminated-states">
+      <p class="chip-label">Estados eliminados:</p>
+      <div class="states-wrap">
+        {% for s in analisis.minimizacion.estados_eliminados %}
+        <span class="state-chip eliminated">{{ s }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- TAB: TRAZA ANIMADA -->
+<div class="tab-panel" id="tab-traza">
+  <div class="card">
+    <div class="traza-header">
+      <h2>Traza de validación</h2>
+      <div class="traza-controls">
+        <button class="ctrl-btn" id="btnPrev" disabled>‹ Anterior</button>
+        <span class="traza-counter"><span id="stepCur">0</span> / <span id="stepTotal">0</span></span>
+        <button class="ctrl-btn" id="btnNext">Siguiente ›</button>
+        <button class="ctrl-btn play" id="btnPlay">▶ Auto</button>
+      </div>
+    </div>
+    <div class="cadena-display" id="cadenaDisplay"></div>
+    <div class="step-display">
+      <div class="step-info">
+        <div class="step-symbol-box">
+          <span class="step-label">Símbolo</span>
+          <span class="step-symbol" id="stepSymbol">—</span>
+        </div>
+        <div class="step-states-box">
+          <span class="step-label">Estados activos</span>
+          <div class="step-states" id="stepStates"></div>
+        </div>
+      </div>
+    </div>
+    <div class="table-scroll" style="margin-top:1rem">
+      <table id="trazaTable">
+        <thead>
+          <tr><th>Paso</th><th>Símbolo</th><th>Estados activos</th></tr>
+        </thead>
+        <tbody>
+          {% for paso in analisis.traza %}
+          <tr data-step="{{ paso.paso }}">
+            <td>{{ paso.paso }}</td>
+            <td>{{ paso.simbolo if paso.simbolo is not none else 'inicio' }}</td>
+            <td>{{ paso.estados_activos | join(', ') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: TABLAS DE TRANSICIÓN -->
+<div class="tab-panel" id="tab-transiciones">
+  <div class="card">
+    <h2>Tabla de transiciones — AFN</h2>
+    {% set afn_alfa = analisis.afn.alfabeto %}
+    <div class="table-scroll">
+      <table class="transition-table" id="tabla-afn">
+        <thead>
+          <tr>
+            <th>Estado</th>
+            {% for sym in afn_alfa %}<th><code>{{ sym }}</code></th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for estado in analisis.afn.estados %}
+          <tr class="{% if estado == analisis.afn.inicial %}row-initial{% endif %} {% if estado in analisis.afn.aceptacion %}row-accept{% endif %}">
+            <td class="state-col">
+              {% if estado == analisis.afn.inicial %}<span class="arrow-initial">→</span>{% endif %}
+              {% if estado in analisis.afn.aceptacion %}<span class="star-accept">★</span>{% endif %}
+              <span class="state-chip">{{ estado }}</span>
+            </td>
+            {% for sym in afn_alfa %}
+            <td>
+              {% if estado in analisis.afn.transiciones and sym in analisis.afn.transiciones[estado] %}
+                {% for dest in analisis.afn.transiciones[estado][sym] %}
+                <span class="state-chip mini">{{ dest }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="empty-trans">∅</span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-legend">
+      <span><span class="arrow-initial">→</span> Estado inicial</span>
+      <span><span class="star-accept">★</span> Estado de aceptación</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Tabla de transiciones — AFD</h2>
+    {% set afd_alfa = analisis.afd.alfabeto %}
+    <div class="table-scroll">
+      <table class="transition-table" id="tabla-afd">
+        <thead>
+          <tr>
+            <th>Estado</th>
+            {% for sym in afd_alfa %}<th><code>{{ sym }}</code></th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for estado in analisis.afd.estados %}
+          <tr class="{% if estado == analisis.afd.inicial %}row-initial{% endif %} {% if estado in analisis.afd.aceptacion %}row-accept{% endif %}">
+            <td class="state-col">
+              {% if estado == analisis.afd.inicial %}<span class="arrow-initial">→</span>{% endif %}
+              {% if estado in analisis.afd.aceptacion %}<span class="star-accept">★</span>{% endif %}
+              <span class="state-chip">{{ estado }}</span>
+            </td>
+            {% for sym in afd_alfa %}
+            <td>
+              {% if estado in analisis.afd.transiciones and sym in analisis.afd.transiciones[estado] %}
+                <span class="state-chip mini">{{ analisis.afd.transiciones[estado][sym] }}</span>
+              {% else %}
+                <span class="empty-trans">∅</span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-legend">
+      <span><span class="arrow-initial">→</span> Estado inicial</span>
+      <span><span class="star-accept">★</span> Estado de aceptación</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Tabla de transiciones — AFD mínimo</h2>
+    {% set min_alfa = analisis.afd_min.alfabeto %}
+    <div class="table-scroll">
+      <table class="transition-table" id="tabla-min">
+        <thead>
+          <tr>
+            <th>Estado</th>
+            {% for sym in min_alfa %}<th><code>{{ sym }}</code></th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for estado in analisis.afd_min.estados %}
+          <tr class="{% if estado == analisis.afd_min.inicial %}row-initial{% endif %} {% if estado in analisis.afd_min.aceptacion %}row-accept{% endif %}">
+            <td class="state-col">
+              {% if estado == analisis.afd_min.inicial %}<span class="arrow-initial">→</span>{% endif %}
+              {% if estado in analisis.afd_min.aceptacion %}<span class="star-accept">★</span>{% endif %}
+              <span class="state-chip">{{ estado }}</span>
+            </td>
+            {% for sym in min_alfa %}
+            <td>
+              {% if estado in analisis.afd_min.transiciones and sym in analisis.afd_min.transiciones[estado] %}
+                <span class="state-chip mini">{{ analisis.afd_min.transiciones[estado][sym] }}</span>
+              {% else %}
+                <span class="empty-trans">∅</span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-legend">
+      <span><span class="arrow-initial">→</span> Estado inicial</span>
+      <span><span class="star-accept">★</span> Estado de aceptación</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DIAGRAMA COMPLETO -->
+<div class="modal-overlay" id="modalDiagrama">
+  <div class="modal-header">
+    <div class="modal-title">
+      <span class="automata-badge" id="modalBadge">AFN</span>
+      <span id="modalTitleText" style="font-weight:700;font-size:1rem;color:var(--text)"></span>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+      <button class="ctrl-btn" id="modalBtnPrev" disabled>‹ Anterior</button>
+      <span class="traza-counter">
+        <span id="modalStepCur">0</span> / <span id="modalStepTotal">0</span>
+      </span>
+      <button class="ctrl-btn" id="modalBtnNext">Siguiente ›</button>
+      <button class="ctrl-btn play" id="modalBtnPlay">▶ Auto</button>
+      <button class="modal-close" id="modalCloseBtn">✕ Cerrar</button>
+    </div>
+  </div>
+  <div class="modal-body">
+    <div class="modal-sim-bar">
+      <span style="font-size:0.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap">Cadena:</span>
+      <div class="modal-cadena-chars" id="modalCadenaChars"></div>
+      <span class="modal-symbol-big" id="modalSymbol">—</span>
+    </div>
+    <div class="modal-states-bar">
+      <span class="modal-states-label">Estados activos:</span>
+      <div id="modalActiveStates" style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center"></div>
+    </div>
+    <div class="modal-diagram-wrap">
+      <div id="diagram-modal"></div>
+    </div>
+  </div>
+</div>
+
+<script id="analisisData" type="application/json">{{ analisis | tojson }}</script>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='diagrams.js') }}"></script>
+{% endblock %}

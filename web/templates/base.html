@@ -3,10 +3,19 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Validador IPv4{% endblock %}</title>
+    <title>{% block title %}NetLab{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   </head>
   <body>
+    <nav class="top-nav">
+      <div class="nav-inner">
+        <a href="{{ url_for('inicio') }}" class="nav-brand">NetLab</a>
+        <div class="nav-links">
+          <a href="{{ url_for('inicio') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">IPv4</a>
+          <a href="{{ url_for('inicio_mac') }}" class="nav-link {% if '/mac' in request.path %}active{% endif %}">MAC</a>
+        </div>
+      </div>
+    </nav>
     <main class="shell">
       {% block content %}{% endblock %}
     </main>
