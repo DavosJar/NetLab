@@ -3,7 +3,6 @@ Módulo de operaciones: funciones para construir, combinar y transformar autóma
 """
 
 from .concatenar import concatenar
-from .union import union
 from .repetir import repetir
 from .subconjuntos import afn_a_afd
 from .minimizar import minimizar

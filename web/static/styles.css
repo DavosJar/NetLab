@@ -222,7 +222,7 @@ button:hover { opacity: 0.9; transform: translateY(-1px); }
 /* ── AUTOMATA GRID ────────────────────────────────── */
 .automata-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
 }

@@ -42,7 +42,7 @@ function computeLayout(estados, inicial, transiciones, isNFA, W) {
     byLevel[lv].push(s);
   });
   const keys = Object.keys(byLevel).map(Number).sort((a, b) => a - b);
-  const LEVEL_H = 110, NODE_W = 95;
+  const LEVEL_H = 110, NODE_W = 110;
   const H = keys.length * LEVEL_H + 80;
   const positions = {};
   keys.forEach((lv, li) => {
@@ -545,3 +545,12 @@ window.addEventListener('load', () => {
 });
 
 } // end if dataEl
+
+/* ── EJEMPLOS RÁPIDOS ─────────────────────────────── */
+document.querySelectorAll('.ejemplo-chip').forEach(chip => {
+  chip.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('cadena').value = chip.dataset.ip;
+    chip.closest('form').submit();
+  });
+});
