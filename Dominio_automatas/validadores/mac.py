@@ -1,11 +1,16 @@
-"""
-Validador de direcciones MAC (Media Access Control).
+from Dominio_automatas.modelos.afn import AFN
+from Dominio_automatas.operaciones.repetir import repetir
+from Dominio_automatas.automatas.segmento_hex import construir_afn_segmento_hex
+from Dominio_automatas.automatas.separador_mac import construir_afn_separador_mac
 
-Dirección MAC: XX:XX:XX:XX:XX:XX donde cada XX es un segmento hexadecimal (00-FF).
+def construir_afn_mac() -> AFN:
+    """
+    Construye el AFN que reconoce una dirección MAC válida.
+    
+    Lenguaje: segmento_hex : segmento_hex : segmento_hex : segmento_hex : segmento_hex : segmento_hex
+    (6 segmentos hexadecimales separados por 5 delimitadores de dos puntos ':')
+    """
+    afn_segmento = construir_afn_segmento_hex()
+    afn_separador = construir_afn_separador_mac()
 
-Construcción:
-    AFN_MAC = repetir(AFN_segmento_hex, n=6, separador=AFN_dos_puntos)
-"""
-
-# Validador de MAC
-# A implementar: combinar AFN_segmento_hex y AFN_dos_puntos mediante operaciones de autómatas
+    return repetir(afn_segmento, n=6, separador=afn_separador)
