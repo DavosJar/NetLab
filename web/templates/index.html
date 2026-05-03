@@ -19,6 +19,20 @@
         placeholder="192.168.1.1" autocomplete="off" spellcheck="false">
       <button type="submit"><span class="btn-icon">▶</span> Validar</button>
     </div>
+
+    <div class="ejemplos-row">
+      <span class="ejemplos-label">Ejemplos:</span>
+      <div class="ejemplos-chips">
+        <button type="button" class="ejemplo-chip valid" data-ip="192.168.1.1">192.168.1.1</button>
+        <button type="button" class="ejemplo-chip valid" data-ip="10.0.0.1">10.0.0.1</button>
+        <button type="button" class="ejemplo-chip valid" data-ip="255.255.255.255">255.255.255.255</button>
+        <button type="button" class="ejemplo-chip valid" data-ip="1.1.1.0">1.1.1.0</button>
+        <button type="button" class="ejemplo-chip invalid" data-ip="256.1.1.1">256.1.1.1</button>
+        <button type="button" class="ejemplo-chip invalid" data-ip="192.168.1">192.168.1</button>
+        <button type="button" class="ejemplo-chip invalid" data-ip="abc.def.ghi.jkl">abc.def.ghi.jkl</button>
+        <button type="button" class="ejemplo-chip invalid" data-ip="11">11</button>
+      </div>
+    </div>
   </form>
   {% if resultado is not none %}
   <section class="result-card {% if resultado %}ok{% else %}bad{% endif %}">
@@ -927,5 +941,13 @@ window.addEventListener('load', () => {
 });
 
 } // end if dataEl
+
+/* ── EJEMPLOS RÁPIDOS ─────────────────────────────── */
+document.querySelectorAll('.ejemplo-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.getElementById('cadena').value = chip.dataset.ip;
+    chip.closest('form').submit();
+  });
+});
 </script>
 {% endblock %}
